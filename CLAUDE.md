@@ -8,13 +8,13 @@ put detail in `AGENT/`.
 
 ## Current state (read first)
 
-As of 2026-10-18 this repository contained **no source code** (GitHub API 2026-10-18: repository size 0, no branches, no commits; ls-remote returned no refs.).
-Until that changes:
+This repository holds the **ecosystem documentation** (Markdown only, no build): audit,
+architecture, contracts, roadmap with the session checkpoint, and threat model (`README.md`).
+It has no code, so no build or test command exists.
 
-- Do not describe an architecture, language, or toolchain as fact. Record discoveries in
-  `AGENT/PROJECT_CONTEXT.md` with evidence (file paths, manifests, command output).
-- When the first real code lands, update this file's **Commands** table and
-  `AGENT/ARCHITECTURE.md` in the same pull request.
+- Every status names its evidence (source, command output, CI run id) or says Unverified.
+- Update `roadmap/IMPLEMENTATION_ROADMAP.md`'s session checkpoint at the end of every session.
+- Component details stay in their repositories; link to them instead of copying.
 
 ## Commands
 
