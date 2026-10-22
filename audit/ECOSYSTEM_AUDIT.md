@@ -25,16 +25,16 @@ Heads from `git ls-remote --heads` and `list_repos`, 2026-10-22. Every repositor
 
 | Repository | Default branch head | Topic branch (`ccr-63f8aa87-1b0paj`) | Code | State |
 |---|---|---|---|---|
-| Zairenkai-App | `dev` `c7b85e8` | `d0db6b7` (draft PR #5) | 145 files | Android app, integration layer, scripts |
+| Zairenkai-App | `dev` `c7b85e8` | `e1ca387` (draft PR #5) | 145 files | Android app, integration layer, scripts |
 | Zairenkai-Core | `dev` `11e9742` | `dec9d79` (draft PR #3) | 75 | Rust control plane |
 | Zairenkai-FAS | `dev` `be08b2d` | `6f9bccc` (draft PR #4) | 50 | Rust frame-aware daemon |
 | Zairenkai-ThermalTools | `dev` `3bc71fe` | `6ed9a30` (new, docs only) | 132 | Rust read-only thermal CLI |
 | Zairenkai-ART | `dev` `0d8cd72` | `a999e98` (new, docs only) | 35 | Rust `zart`, Python upstream tool |
-| Zairenkai-Database-Source | `dev` `d9c4290` | `52fa33c` (new, docs only) | 898 | AFID Python pipeline and catalog |
+| Zairenkai-Database-Source | `dev` `d9c4290` | `10a28fa` (draft PR #13; fix PR #14) | 898 | AFID Python pipeline and catalog |
 | Zairenkai-Modules | `dev` `f226502` | `298311c` (draft PR #1) | 19 on the topic branch | Single `zairenkai` module assembly |
 | Zairenkai-Tuning | **none** | `0c226b2` (only branch) | 70 | GPL-3.0 `ztune` |
-| Zairenkai-Sdk | `dev` `d482afe` | – | 0 | foundation only |
-| Zairenkai-Intelligence-Engine | `dev` `0191e36` | – | 0 | foundation only |
+| Zairenkai-Sdk | `dev` `d482afe` | `41481ec` (draft PR #1) | 0 on `dev` | contracts on the topic branch |
+| Zairenkai-Intelligence-Engine | `dev` `0191e36` | `0e56b90` (draft PR #1) | 0 on `dev` | Local AI spike on the topic branch |
 | Zairenkai-Graphics-Platform | `dev` `b3dcca4` | – | 0 | foundation only |
 | Zairenkai-License-Server | `dev` `d563033` | – | 0 | foundation only |
 | Zairenkai-Release | `dev` `0d80427` | – | 0 | foundation only |
@@ -58,7 +58,12 @@ Evidence: C (`git ls-remote`, `git ls-tree -r origin/dev`), 2026-10-22.
 | App @ `d0db6b7` | `verify_integration.py lock`, `access`; verifier tests; shellcheck; actionlint | lock ok; access ok without credentials; 17 passed; clean | C/H |
 | App @ `d0db6b7` | `./gradlew :integration-core:test` | **blocked**: Maven Central answered HTTP 429 to this session before compilation | N |
 | App, CI | run 39706970377 (`dc2e985`) | scripts ✓, reduced ✓, full-integration ✗ at "Read-only token for the component repositories" | CI |
-| App, CI | run 39827139485 (`d0db6b7`, first run without the App token) | in progress when this document was written; see the roadmap checkpoint | N |
+| App, CI | run 39827139485 (`d0db6b7`, first run without the App token) | **all jobs green, full-integration included**: the first CI build of the integrated APK with native components | CI |
+| App, CI | run 39830066001 (`e1ca387`, module with ztune, Core `8931cbb`) | all jobs green | CI |
+| Modules, CI | run 39827725469 (`298311c`) | `module` job green for the first time (Core + FAS + Tuning built and assembled) | CI |
+| Sdk @ `41481ec` | unittest; `zsdk.py validate`; `check-mirrors`; CI run 39831321147 | 25 passed; 33/33 fixtures valid; mirrors ok; CI green | C/CI |
+| Intelligence-Engine @ `0e56b90` | unittest; real-model test; `tools/offline-proof.sh`; `tools/eval.py` | 14 passed + 1 real-model test passed; offline proof exit 0, 0 network attempts; eval 9/16 | C/H |
+| Database-Source PR #13 / #14 | CI `audit` (pip-audit) | failed on certifi 2026.10.18 (PYSEC-2026-4320) on every branch; fixed in #14 (`ccr-…-certifi`), ported to #13 as `10a28fa` | CI/C |
 
 Logs: the session scratchpad (`checks/*.log`); not committed.
 
@@ -81,7 +86,7 @@ The preliminary remote audit listed eight leads. Each was reproduced against cur
 
 ### BLOCKER
 
-**F-01 · App full-integration build has never passed on GitHub.**
+**F-01 · App full-integration build had never passed on GitHub. RESOLVED** (run 39827139485, then 39830066001).
 `Zairenkai-App/.github/workflows/ci.yml` job `full-integration`. Until `dc2e985` it stopped at the
 GitHub App token step (run 39706970377), so no CI run has built the native components into the
 APK. Impact: no CI evidence that the integrated app builds. Fix: token removed (`e0d53bb`); the
@@ -111,13 +116,13 @@ lock is re-pinned to the merge commits after a full-integration build. Class: C.
 Modules' lock pins a commit reachable only from a topic branch. Fix: the maintainer creates `dev`
 (from an empty commit or from `0c226b2`) so a draft PR can be opened. Class: C.
 
-**F-06 · The app does not integrate Zairenkai-Tuning yet.**
+**F-06 · The app did not integrate Zairenkai-Tuning. PARTLY RESOLVED** in App `e1ca387` (module with ztune pinned, fixtures re-captured, CI green); a typed tuning client in the app is still open.
 App lock pins Modules `ea138ef` (Core + FAS only); Modules `bd1eb06`+ adds ztune and its
 Corresponding Source. The app has no tuning client and no captured `zairenkai.tuning` fixtures.
 Fix: re-pin Modules and Core once their PRs settle, add a typed client parsing the captured
 documents (Core `crates/zcore-platform/tests/fixtures/tuning/`). Class: S.
 
-**F-07 · No canonical contract set.**
+**F-07 · No canonical contract set. ADDRESSED** by Zairenkai-Sdk PR #1 (`41481ec`), not merged; no consumer validates against it yet.
 Contracts live with their producers: Core `crates/zcore-domain/src/protocol.rs`, ThermalTools
 `schemas/`, AFID `schemas/`, Tuning `docs/CONTRACT.md`, App `contracts/` fixtures,
 `integration/system-modules.json`. Zairenkai-Sdk is empty. Impact: no single compatibility
@@ -152,7 +157,7 @@ Fixed: see lead 8. Class: C.
 `ZAIRENKAI_CI_APP_PRIVATE_KEY` (App, repository level) are no longer read by any workflow.
 Fix: the maintainer deletes them and uninstalls the App. Class: S.
 
-**F-13 · Component CI on topic branches is not evidence for the app's pins.** Core and FAS CI ran
+**F-13 · Component CI on topic branches is not evidence for the app's pins. RESOLVED** for Core `8931cbb` through App and Modules CI (both build it at that commit). Core and FAS CI ran
 green on their dispatches (39701977860 at `4cdfe8e`, 39701982927 at `99cfb18`), but Core's
 lock in Modules is now `8931cbb`, whose component was built only locally. Fix: dispatch Core CI
 at `8931cbb` (or the eventual merge commit). Class: CI/C.
@@ -162,9 +167,11 @@ audit). Not re-checked in this session. Class: N.
 
 ### LOW
 
-**F-15 · Upstream reference catalog not yet audited for graphics and local AI.** Vulkan-Tools,
+**F-15 · Upstream reference catalog not yet audited for graphics and local AI. Local AI done** (Intelligence-Engine ADR 0001: llama.cpp `097f5b53` MIT, LiteRT-LM `bda62485` Apache-2.0, Gallery `8f5f2a0b` Apache-2.0, Qwen2.5-0.5B GGUF `9217f5db` Apache-2.0); graphics still open. Vulkan-Tools,
 ANGLE, Perfetto, LiteRT-LM and llama.cpp have no recorded commit or licence check yet; they are
 scheduled with Graphics-Platform and the Intelligence-Engine spike (roadmap Phase 3). Class: N.
+
+**F-17 · AFID security audit red on every branch** (certifi PYSEC-2026-4320). Fix: Database-Source PR #14. Class: CI/C.
 
 **F-16 · Release gate output in `docs/testing/verification-report.md` predates the single-module
 re-pin.** Re-run it after F-01 passes. Class: S.
