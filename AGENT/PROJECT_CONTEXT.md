@@ -9,22 +9,16 @@
 |---|---|---|
 | Repository | `ZairenkaiPrjctX/Zairenkai-Docs` | Verified. Evidence: GitHub API |
 | GitHub description | (none set) | Verified. Evidence: GitHub API |
-| Visibility | private | Verified. Evidence: GitHub API |
-| Configured default branch | `main` (no commits exist on it yet) | Verified. Evidence: GitHub API |
-| Purpose | Documentation for the Zairenkai project: structure and content-quality conventions. | **Unverified**: rollout hint, not derived from code |
+| Visibility | public | Verified. Evidence: `list_repos`, 2026-10-22 |
+| Default branch | `dev` | Verified. Evidence: `git ls-remote`, 2026-10-22 |
+| Purpose | Ecosystem documentation: audit, architecture, contracts, roadmap, threat model | Verified. Evidence: `README.md`, 2026-10-22 |
 
 ## Contents
 
-**Unknown / Not Configured.** On 2026-10-18 the repository was empty. Evidence: GitHub API 2026-10-18: repository size 0, no branches, no commits; ls-remote returned no refs.
-The only files present are the agent foundation itself.
-
-## Key components
-
-Unknown. Nothing to list until source code exists.
-
-## Build, test, and run
-
-Not Configured. No manifests, build scripts, or CI workflows exist.
+| Area | Location | Status |
+|---|---|---|
+| Ecosystem audit, architecture, responsibility matrix, contracts, roadmap, threat model | `audit/`, `architecture/`, `roadmap/`, `security/` | Verified. Evidence: files present, written from the audit of 2026-10-22 |
+| Build, tests | — | Not Configured (Markdown only) |
 
 ## Authoritative sources
 
@@ -37,7 +31,8 @@ Not Configured. No manifests, build scripts, or CI workflows exist.
 
 ## Related repositories
 
-None verified. Record relationships here, with evidence, once code shows them.
+The documents describe the 16 Zairenkai repositories; their facts come from the audit of
+2026-10-22 (`audit/ECOSYSTEM_AUDIT.md`).
 
 ## Open questions to answer when code lands
 
