@@ -38,7 +38,7 @@ Acceptance: a CI run id with every full-integration step green, and the integrat
 - [x] SDK-defined schemas: module catalog, Local-AI types (entitlements still open)
 - [ ] Catalog generation moved from App to Modules, with old/new catalogs compared byte for byte
 - [x] App re-pinned to Modules with ztune and to Core with the tuning adapter (App `e1ca387`, CI green)
-- [ ] Typed tuning client in the app (F-06 remainder)
+- [x] Typed tuning client in the app over Core's `tuning` method (App PR #6, CI 39888821755; not merged)
 
 Acceptance: SDK CI validates every captured fixture; App full-integration green at the new pins.
 
@@ -48,7 +48,9 @@ Acceptance: SDK CI validates every captured fixture; App full-integration green 
       typed tool calls through a closed `ToolRegistry`, airplane-mode proof on a Linux host; no
       remote AI API. Eval 9/16: the 0.5B model is too weak alone
 - [ ] Intelligence-Engine Phase B: runtime comparison on Android devices (needs devices)
-- [ ] Graphics-Platform: ADR on stack; read-only Vulkan probe and GLES/EGL probe as separate subsystems
+- [x] Graphics-Platform: ADR on stack (proposed); read-only Vulkan probe and GLES/EGL probe as separate
+      subsystems, host-tested on Mesa lavapipe/llvmpipe (Graphics-Platform PR #1, CI 39888606008; not merged)
+- [ ] Graphics-Platform: first read-only run on a phone; App integration (`libzgfx.so`); SDK mirror of the contract
 - [ ] Tuning: maintainer decides ADR 0001 (executor), creates `dev`; first Tier D profile only with hardware evidence
 - [ ] Release: orchestration over verified inputs, SBOM, notices, checksums
 - [ ] License-Server: scope ADR; offline-safe; optional
@@ -72,65 +74,72 @@ The product is not release-ready until all of Phase 5 holds.
 
 ---
 
-## Session checkpoint · 2026-10-22 (end of session)
+## Session checkpoint · 2026-10-23
 
-**Phase:** 2 and 3 started (Phase 1 done except the central `.github` inventory and the release
-gate re-run). **Last completed task:** Local AI Phase A spike (IE PR #1) and PR descriptions.
+**Phase:** 2 nearly done (catalog move and SDK consumers open), 3 in progress. **Last completed
+task:** Graphics-Platform `zgfx` (read-only Vulkan and GLES/EGL probes) and its first green CI.
 
-### Changes in this session (branch `ccr-63f8aa87-1b0paj` unless noted)
+### Merged since the last checkpoint (maintainer)
+
+Core #3 (`345fc7f`), FAS #4 (`1c453db`), Modules #1 (`bee45bd`), App #5 (`abff7d5`), Sdk #1
+(`ed44c90`), Intelligence-Engine #1 (`cc3d48c`), Docs #1 (`9bd8833`), Database-Source #14 and #13.
+
+### Changes in this session (branch `ccr-63f8aa87-1b0paj`)
 
 | Repository | Commits | PR | CI |
 |---|---|---|---|
-| Zairenkai-Tuning | `ab09e36`, `450a624`, `0c226b2` | none possible: no default branch | built by Modules and App CI |
-| Zairenkai-Core | `6fd0f79`, `8931cbb`, `dec9d79` | draft #3 | green (39827498175) |
-| Zairenkai-Modules | `d7f435b`, `bd1eb06`, `298311c` | draft #1 | green, `module` job included (39827725469) |
-| Zairenkai-App | `e0d53bb`, `d0db6b7`, `e1ca387` | draft #5 | green, full-integration included (39827139485, 39830066001) |
-| Zairenkai-FAS | `6f9bccc` | draft #4 | green (39827237501) |
-| Zairenkai-ART | `a999e98` | draft #3 | green (39828342234) |
-| Zairenkai-ThermalTools | `6ed9a30` | draft #3 | green (39828355708) |
-| Zairenkai-Database-Source | `52fa33c`, `10a28fa` (port of #14) | draft #13; fix draft #14 (`ccr-63f8aa87-1b0paj-certifi`) | #13 `audit` was red on certifi; re-run pending after the port |
-| Zairenkai-Sdk | `41481ec` | draft #1 | green (39831321147) |
-| Zairenkai-Intelligence-Engine | `0e56b90` | draft #1 | **no workflow run started** (Actions may be disabled in this repository) |
-| Zairenkai-Docs | `7735d1f` + this update | draft #1 | no CI |
+| Zairenkai-Modules | `992751f` (pins Core and FAS merge commits) | draft #2 | green (39885361175) |
+| Zairenkai-App | `cf6fdb8`, `fbe9e44`, `7f942a4` | draft #6 | green (39888821755); the first run (39887060148) failed on a uid-1001 capture, fixed in `fbe9e44` |
+| Zairenkai-Graphics-Platform | `faf8870`, `b319e28` | draft #1 | green (39888606008), all 5 jobs including Mesa host probes |
+| Zairenkai-Docs | this update | draft (to open) | no CI |
 
-Every commit listed carries an SSH signature (`gpgsig` on the commit object).
+Every commit carries an SSH signature (`gpgsig` on the commit object).
 
 ### Commands and results
 
-`audit/ECOSYSTEM_AUDIT.md` §2. Highlights: App full-integration green twice in CI; Modules
-`module` job green; SDK 25 tests and 33 fixtures; IE 14 tests, real-model test, offline proof
-(0 network attempts), eval 9/16. App Gradle locally: blocked (Maven Central HTTP 429); CI is the
-evidence.
+- App: `:integration-core:test` 99 passed; `:app:testDebugUnitTest` 29 passed; lint 0 errors;
+  `verify_integration.py lock`/`build` ok; verifier tests 17; shellcheck clean;
+  `build-components.sh` and `capture-contracts.sh` exit 0 (as root, and the tuning capture as
+  uid 1001 via `runuser`). Gradle worked locally this time (no HTTP 429).
+- Graphics-Platform: 22 tests + 3 driver tests (25 with `--include-ignored` on Mesa 25.2.8);
+  clippy, fmt, MSRV 1.85, shellcheck, actionlint clean; `build-android.sh` with NDK r27d, three
+  ABIs, 16 KB alignment, `NEEDED` only libc and libdl.
 
 ### Findings
 
-Resolved: F-01, F-11, F-13, leads 1, 3, 4, 8. Partly: F-06 (typed tuning client open), F-07
-(SDK not consumed yet), F-15 (graphics open). Open: F-02, F-03, F-04, F-05, F-08, F-09, F-10,
-F-12, F-14, F-16, F-17 (fix in #14).
+Resolved: F-01, F-06 (pending merge of App #6), F-11, F-13, F-15, F-17, leads 1, 3, 4, 8.
+Partly: F-07 (SDK exists, no consumer; graphics contract not mirrored). Open: F-02, F-03, F-04,
+F-05, F-08, F-09, F-10, F-12, F-14, F-16.
+
+New observation: Core answers `not_found` for every ztune failure, so the app separates "no ztune"
+from "ztune failed" by Core's message prefix. A distinct Core error code would remove that
+dependency (proposed, not done).
 
 ### Contracts and locks still to update
 
-- After the maintainer merges Core #3, FAS #4, Modules #1: re-pin App and Modules to the merge
-  commits and re-run full integration.
-- SDK `fixtures/captured/` re-copied whenever App or Core re-capture.
-- IE `contracts/sdk/` follows the SDK pin (`41481ec`).
+- After Modules #2 merges: re-pin the App to Core `345fc7f`, FAS `1c453db` and the Modules merge
+  commit, and re-run full integration.
+- SDK: add `zairenkai.graphics` schema 1 with captured zgfx output; re-copy App fixtures
+  (`core/tuning*.json`) into `fixtures/captured/`.
+- App: package `libzgfx.so` and a `graphics.*` subsystem once Graphics-Platform #1 is merged.
 
 ### Next three actions
 
-1. Typed tuning client in the app over Core's `tuning` method, with captured fixtures (F-06).
-2. Re-run the release gate on the CI full-integration APK and record the output (F-16).
-3. Graphics-Platform: stack ADR and a read-only Vulkan / GLES probe (Phase 3).
+1. Re-run the release gate on the CI full-integration APK and record the output (F-16).
+2. SDK mirror of `zairenkai.graphics` and the new tuning fixtures (F-07).
+3. App integration of zgfx after Graphics-Platform #1 merges.
 
 ### Maintainer actions
 
+- Review and merge, when satisfied: Modules #2, App #6, Graphics-Platform #1, this Docs PR (F-04).
+- Confirm Apache-2.0 for Zairenkai-Sdk, Zairenkai-Intelligence-Engine and
+  Zairenkai-Graphics-Platform.
 - Create a `dev` branch in Zairenkai-Tuning so its draft PR can be opened (F-05).
 - Decide Tuning ADR 0001: keep the gated executor in ztune, or move writes to Core (F-09).
-- Review and merge, when satisfied: Core #3, FAS #4, Modules #1, App #5, ART #3, ThermalTools #3,
-  Database-Source #14 then #13, Sdk #1, Intelligence-Engine #1, Docs #1 (F-04).
-- Confirm Apache-2.0 for Zairenkai-Sdk and Zairenkai-Intelligence-Engine.
-- Check that GitHub Actions is enabled in Zairenkai-Intelligence-Engine.
+- Decide whether Core should give "ztune not installed" its own error code.
 - Delete the unused `ZAIRENKAI_CI_APP_ID` / `ZAIRENKAI_CI_APP_PRIVATE_KEY` and uninstall the CI App (F-12).
 - Allow this agent access to `ZairenkaiPrjctX/.github`, or run the foundation validator (F-08).
 - Run `release.yml` from `dev` once the prerequisites hold (F-03).
-- Choose devices for the first physical validation and for the Local AI runtime comparison (F-02).
+- Choose devices for the first physical validation (Core, FAS, module lifecycle, zgfx) and for
+  the Local AI runtime comparison (F-02).
 - Install the plugins listed in `audit/ECOSYSTEM_AUDIT.md` §6 in an interactive session.
